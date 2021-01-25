@@ -26,12 +26,6 @@ function connect() {
   );
   conenecteds();
 }
-function clearConnectList() {
-  var otherClientDiv = document.getElementById("otherClients");
-  while (otherClientDiv.hasChildNodes()) {
-    otherClientDiv.removeChild(otherClientDiv.lastChild);
-  }
-}
 function performCall(otherEasyrtcid) {
   easyrtc.hangupAll();
   var successCB = function () {};
@@ -39,7 +33,6 @@ function performCall(otherEasyrtcid) {
   easyrtc.call(otherEasyrtcid, successCB, failureCB);
 }
 function getListUsersRoom(roomName, data, isPrimary) {
-  clearConnectList();
   for (var easyrtcid in data) {
     performCall(easyrtcid);
   }
