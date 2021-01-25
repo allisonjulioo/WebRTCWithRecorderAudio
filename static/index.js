@@ -26,23 +26,37 @@ function connect() {
   );
   conenecteds();
 }
-function conenecteds() {
+function clearConnectList() {
+  var otherClientDiv = document.getElementById("otherClients");
+  while (otherClientDiv.hasChildNodes()) {
+    otherClientDiv.removeChild(otherClientDiv.lastChild);
+  }
+}
+function performCall(otherEasyrtcid) {
+  easyrtc.hangupAll();
+  var successCB = function () {};
+  var failureCB = function () {};
+  easyrtc.call(otherEasyrtcid, successCB, failureCB);
+}
+function getListUsersRoom(roomName, data, isPrimary) {
+  clearConnectList();
+  for (var easyrtcid in data) {
+    performCall(easyrtcid);
+  }
+}
+async function conenecteds() {
   if (!connection_id) {
     document.getElementById("action-buttons").remove();
   }
-  return fetch("/recordings").then((res) => {
-    if (res.status === 200) {
-      return res.json().then((json) => {
-        json.messageFilenames.forEach((filename) => {});
-      });
-    }
-    console.log("Invalid status getting recordings: " + res.status);
-  });
+  const res = await fetch("/recordings");
+  if (res.status === 200) {
+    return res.json().then((json) => {
+      json.messageFilenames.forEach((filename) => {});
+    });
+  }
+  console.log("Invalid status getting recordings: " + res.status);
 }
 
-function getListUsersRoom(roomName, data, isPrimary) {
-  console.log(data);
-}
 function loginSuccess(easyrtcid) {
   selfEasyrtcid = easyrtcid;
   if (connection_id) {
@@ -51,6 +65,8 @@ function loginSuccess(easyrtcid) {
     document.getElementById("iam2").innerHTML =
       "server-" + easyrtc.cleanId(easyrtcid);
   }
+
+  performCall(easyrtcid);
 }
 
 function loginFailure(errorCode, message) {
