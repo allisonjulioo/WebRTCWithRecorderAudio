@@ -1,10 +1,18 @@
 const http = require("http");
+const fs = require("fs");
 const express = require("express");
 const serveStatic = require("serve-static");
 const socketIo = require("socket.io");
+const { promisify } = require("util");
+const bodyParser = require("body-parser");
 
 const easyrtc = require("./lib/easyrtc_server");
-process.title = "node-easyrtc";
+const writeFile = promisify(fs.writeFile);
+const readdir = promisify(fs.readdir);
+const messageFolder = "./public/recordings/";
+if (!fs.existsSync(messageFolder)) {
+  fs.mkdirSync(messageFolder);
+}
 
 const app = express();
 app.use(
