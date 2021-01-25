@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teste</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" type="text/css" href="./demo_recording.css" />
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="./easyrtc.js"></script>
+    <script type="text/javascript" src="./easyrtc_recorder.js"></script>
+    <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+  </head>
+  <body onload="connect();">
+    <div id="container" class="container">
+      <div id="main">
+        <h4 class="timer-lapse" id="timer">00:00</h4>
+        <div id="videos">
+          <div class="videos">
+            <section>
+              <i class="fas fa-user icon-call"></i>
+              <video autoplay="autoplay" id="selfVideo"></video>
+            </section>
+            <strong id="iam1">Você</strong>
+          </div>
+          <div class="videos">
+            <section>
+              <i class="fas fa-user icon-call"></i>
+              <video autoplay="autoplay" id="callerVideo"></video>
+            </section>
+            <strong id="iam2">Servidor</strong>
+          </div>
+        </div>
+        <div id="action-buttons">
+          <button
+            id="startRecording"
+            class="btn btn-info btn-pill btn-sm"
+            onclick="startRecording();"
+          >
+            <i class="fas fa-microphone"></i>
+          </button>
+          <button
+            id="stopRecording"
+            class="btn btn-danger btn-pill btn-sm"
+            onclick="endRecording();"
+          >
+            <i class="fas fa-stop"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
