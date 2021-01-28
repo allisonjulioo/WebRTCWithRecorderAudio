@@ -1,17 +1,24 @@
 let selfEasyrtcid = "";
 const supportsRecording = easyrtc.supportsRecording();
 const url = new URL(window.location);
-const connection_id = url.searchParams.get("id");
+const transaction_id = url.searchParams.get("transaction_id");
+const office_id = url.searchParams.get("office_id");
+const token =
+  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMTAsInVzZXJuYW1lIjoiMTIzNCIsImV4cCI6MTY0Mjg5OTg3Nn0.jNSSjiyRl1_Z7I9J2AKb3UHe-P2F2mOzg3GFdIZ1s34";
 let audiosArr = [];
+let buttonStopRecording;
+let statusCall;
+let list = [];
+const baseAudiosArr = [];
 
 function connect() {
+  buttonStopRecording = document.getElementById("stopRecording");
+  statusCall = document.getElementById("inCall");
   if (!supportsRecording) {
     window.alert(
       "This browser does not support recording. Try chrome or firefox."
     );
   } else {
-    document.getElementById("startRecording").style.display = "block";
-    document.getElementById("stopRecording").style.display = "none";
     easyrtc.setRecordingVideoCodec("vp8");
   }
 
@@ -31,29 +38,24 @@ function performCall(otherEasyrtcid) {
   var successCB = function () {};
   var failureCB = function () {};
   easyrtc.call(otherEasyrtcid, successCB, failureCB);
+  list.push(otherEasyrtcid);
+  list.length >= 2 ? startRecording() : "";
 }
 function getListUsersRoom(roomName, data, isPrimary) {
   for (var easyrtcid in data) {
     performCall(easyrtcid);
   }
 }
-async function conenecteds() {
-  if (!connection_id) {
+function conenecteds() {
+  if (!transaction_id) {
     document.getElementById("action-buttons").remove();
   }
-  const res = await fetch("/recordings");
-  if (res.status === 200) {
-    return res.json().then((json) => {
-      json.messageFilenames.forEach((filename) => {});
-    });
-  }
-  console.log("Invalid status getting recordings: " + res.status);
 }
 
 function loginSuccess(easyrtcid) {
   selfEasyrtcid = easyrtcid;
-  if (connection_id) {
-    document.getElementById("iam1").innerHTML = connection_id;
+  if (transaction_id) {
+    document.getElementById("iam1").innerHTML = transaction_id;
   } else {
     document.getElementById("iam2").innerHTML =
       "server-" + easyrtc.cleanId(easyrtcid);
@@ -72,19 +74,21 @@ let t;
 
 function startRecording() {
   selfRecorder = recordToFile(easyrtc.getLocalStream());
-  if (selfRecorder) {
-    document.getElementById("startRecording").style.display = "none";
-    document.getElementById("stopRecording").style.display = "block";
-  } else {
-    window.alert("failed to start recorder for self");
-    return;
-  }
+  statusCall.classList.remove("ended");
+  statusCall.innerHTML = "Em chamada";
+  statusCall.classList.add("active");
+  buttonStopRecording.classList.add("show");
+
   if (easyrtc.getIthCaller(0)) {
     callerRecorder = recordToFile(
       easyrtc.getRemoteStream(easyrtc.getIthCaller(0), null)
     );
   } else {
     callerRecorder = null;
+    setTimeout(() => {
+      clearInterval(t);
+      startRecording();
+    }, 2000);
   }
   t = setInterval(setTime, 1000);
 }
@@ -136,14 +140,25 @@ async function sendAudioFile(blob) {
   reader.readAsDataURL(blob);
   reader.onloadend = () => saveAudios(reader.result);
 }
-const baseAudiosArr = [];
 function saveAudios(base64AudioMessage) {
   baseAudiosArr.push(base64AudioMessage);
   if (baseAudiosArr.length === 2) {
-    fetch("/recordings", {
+    let params;
+    if (transaction_id) {
+      params = `?officeId=${office_id}&transaction_id=${transaction_id}`;
+    } else {
+      params = `?officeId=${office_id}`;
+    }
+    fetch(`http://localhost:3333/api/office/post-office-recordings/${params}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: baseAudiosArr }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `JWT ${token}`,
+      },
+      body: JSON.stringify({
+        self: baseAudiosArr[0],
+        caller: baseAudiosArr[1],
+      }),
     }).then((res) => {
       if (res.status === 201) {
         const snd = new Audio(base64AudioMessage);
@@ -155,6 +170,10 @@ function saveAudios(base64AudioMessage) {
   }
 }
 async function endRecording() {
+  statusCall.classList.remove("active");
+  statusCall.innerHTML = "Chamada encerrada";
+  statusCall.classList.add("ended");
+  buttonStopRecording.classList.remove("show");
   clearInterval(t);
   if (selfRecorder) {
     selfRecorder.stop();
@@ -162,7 +181,4 @@ async function endRecording() {
   if (callerRecorder) {
     callerRecorder.stop();
   }
-
-  document.getElementById("startRecording").style.display = "block";
-  document.getElementById("stopRecording").style.display = "none";
 }

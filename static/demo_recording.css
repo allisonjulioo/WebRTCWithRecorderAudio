@@ -63,7 +63,9 @@ body {
   font-size: 40px;
   text-align: center;
 }
-
+#action-buttons {
+  display: flex;
+}
 #action-buttons button {
   width: 80px;
   height: 80px;
@@ -72,4 +74,23 @@ body {
   margin: 0 auto;
   font-size: 28px;
   margin-top: 3em;
+}
+.btn-end-call {
+  opacity: 0.1;
+  transform: rotate(-138deg);
+}
+.btn-end-call.show {
+  opacity: 1;
+}
+.in-call {
+  color: #7a7975;
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+}
+.in-call.active {
+  color: #28a745;
+}
+.in-call.ended {
+  color: #df4430 !important;
 }

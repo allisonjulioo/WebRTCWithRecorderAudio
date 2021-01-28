@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#232223" />
-    <title>Teste</title>
+    <title>Áudio Bi-direcional</title>
     <link
       rel="stylesheet"
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -13,7 +13,6 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="./easyrtc.js"></script>
     <script type="text/javascript" src="./easyrtc_recorder.js"></script>
-    <script src="https://cdn.webrtc-experiment.com/MediaStreamRecorder.js"></script>
     <script type="text/javascript" src="./index.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   </head>
@@ -21,6 +20,7 @@
     <div id="container" class="container">
       <div id="main">
         <h4 class="timer-lapse" id="timer">00:00</h4>
+        <small class="in-call" id="inCall">Aguardando...</small>
         <div id="videos">
           <div class="videos">
             <section>
@@ -38,19 +38,19 @@
           </div>
         </div>
         <div id="action-buttons">
-          <button
+          <!-- <button
             id="startRecording"
             class="btn btn-info btn-pill btn-sm"
             onclick="startRecording();"
           >
             <i class="fas fa-microphone"></i>
-          </button>
+          </button> -->
           <button
             id="stopRecording"
-            class="btn btn-danger btn-pill btn-sm"
+            class="btn btn-danger btn-pill btn-sm btn-end-call"
             onclick="endRecording();"
           >
-            <i class="fas fa-stop"></i>
+            <i class="fas fa-phone"></i>
           </button>
         </div>
       </div>
