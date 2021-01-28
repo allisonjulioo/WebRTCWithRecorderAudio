@@ -1,8 +1,7 @@
 let selfEasyrtcid = "";
 const supportsRecording = easyrtc.supportsRecording();
 const url = new URL(window.location);
-const transaction_id = url.searchParams.get("transaction_id");
-const office_id = url.searchParams.get("office_id");
+const connection_id = url.searchParams.get("id");
 let audiosArr = [];
 
 function connect() {
@@ -11,8 +10,8 @@ function connect() {
       "This browser does not support recording. Try chrome or firefox."
     );
   } else {
-    document.getElementById("stopRecording").classList.add("show");
-    document.getElementById("stopRecording").classList.remove("show");
+    document.getElementById("startRecording").style.display = "block";
+    document.getElementById("stopRecording").style.display = "none";
     easyrtc.setRecordingVideoCodec("vp8");
   }
 
@@ -27,15 +26,11 @@ function connect() {
   );
   conenecteds();
 }
-let list = [];
 function performCall(otherEasyrtcid) {
-  clearInterval(t);
   easyrtc.hangupAll();
   var successCB = function () {};
   var failureCB = function () {};
   easyrtc.call(otherEasyrtcid, successCB, failureCB);
-  list.push(otherEasyrtcid);
-  list.length >= 2 ? startRecording() : "";
 }
 function getListUsersRoom(roomName, data, isPrimary) {
   for (var easyrtcid in data) {
@@ -43,25 +38,22 @@ function getListUsersRoom(roomName, data, isPrimary) {
   }
 }
 async function conenecteds() {
-  if (!transaction_id) {
+  if (!connection_id) {
     document.getElementById("action-buttons").remove();
   }
   const res = await fetch("/recordings");
   if (res.status === 200) {
     return res.json().then((json) => {
-      json.audioFilenames.forEach((filename) => {});
+      json.messageFilenames.forEach((filename) => {});
     });
   }
   console.log("Invalid status getting recordings: " + res.status);
-  window.onunload = function () {
-    alert("Bye now!");
-  };
 }
 
 function loginSuccess(easyrtcid) {
   selfEasyrtcid = easyrtcid;
-  if (transaction_id) {
-    document.getElementById("iam1").innerHTML = transaction_id;
+  if (connection_id) {
+    document.getElementById("iam1").innerHTML = connection_id;
   } else {
     document.getElementById("iam2").innerHTML =
       "server-" + easyrtc.cleanId(easyrtcid);
@@ -81,11 +73,8 @@ let t;
 function startRecording() {
   selfRecorder = recordToFile(easyrtc.getLocalStream());
   if (selfRecorder) {
-    document.getElementById("stopRecording").classList.remove("show");
-    document.getElementById("stopRecording").classList.add("show");
-    const inCall = document.getElementById("inCall");
-    inCall.innerHTML = "Em chamada";
-    inCall.classList.add("active");
+    document.getElementById("startRecording").style.display = "none";
+    document.getElementById("stopRecording").style.display = "block";
   } else {
     window.alert("failed to start recorder for self");
     return;
@@ -148,23 +137,19 @@ async function sendAudioFile(blob) {
   reader.onloadend = () => saveAudios(reader.result);
 }
 const baseAudiosArr = [];
-function saveAudios(base64Audio) {
-  baseAudiosArr.push(base64Audio);
+function saveAudios(base64AudioMessage) {
+  baseAudiosArr.push(base64AudioMessage);
   if (baseAudiosArr.length === 2) {
     fetch("/recordings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        audios: baseAudiosArr,
-        transaction_id,
-        office_id,
-      }),
+      body: JSON.stringify({ message: baseAudiosArr }),
     }).then((res) => {
       if (res.status === 201) {
-        const snd = new Audio(base64Audio);
+        const snd = new Audio(base64AudioMessage);
         snd.play();
       } else {
-        console.log("Invalid status saving audio: " + res.status);
+        console.log("Invalid status saving audio message: " + res.status);
       }
     });
   }
@@ -178,6 +163,6 @@ async function endRecording() {
     callerRecorder.stop();
   }
 
-  document.getElementById("stopRecording").classList.add("show");
-  document.getElementById("stopRecording").classList.remove("show");
+  document.getElementById("startRecording").style.display = "block";
+  document.getElementById("stopRecording").style.display = "none";
 }
