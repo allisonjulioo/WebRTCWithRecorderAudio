@@ -3,16 +3,22 @@ const supportsRecording = easyrtc.supportsRecording();
 const url = new URL(window.location);
 const transaction_id = url.searchParams.get("transaction_id");
 const office_id = url.searchParams.get("office_id");
-const token =
-  "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxMTAsInVzZXJuYW1lIjoiMTIzNCIsImV4cCI6MTY0Mjg5OTg3Nn0.jNSSjiyRl1_Z7I9J2AKb3UHe-P2F2mOzg3GFdIZ1s34";
+const token = url.searchParams.get("token");
 let audiosArr = [];
 let buttonStopRecording;
 let statusCall;
 let list = [];
 const baseAudiosArr = [];
 
+let timerElement;
+let selfRecorder = null;
+let callerRecorder = null;
+let timmerRecording;
+let totalSeconds = 0;
+
 function connect() {
   buttonStopRecording = document.getElementById("stopRecording");
+  timerElement = document.getElementById("timer");
   statusCall = document.getElementById("inCall");
   if (!supportsRecording) {
     window.alert(
@@ -39,7 +45,13 @@ function performCall(otherEasyrtcid) {
   var failureCB = function () {};
   easyrtc.call(otherEasyrtcid, successCB, failureCB);
   list.push(otherEasyrtcid);
-  list.length >= 2 ? startRecording() : "";
+  if (list.length >= 2) {
+    startRecording();
+  } else {
+    clearInterval(timmerRecording);
+    timerElement.innerHTML = "";
+    totalSeconds = 0;
+  }
 }
 function getListUsersRoom(roomName, data, isPrimary) {
   for (var easyrtcid in data) {
@@ -68,10 +80,6 @@ function loginFailure(errorCode, message) {
   easyrtc.showError(errorCode, message);
 }
 
-let selfRecorder = null;
-let callerRecorder = null;
-let t;
-
 function startRecording() {
   selfRecorder = recordToFile(easyrtc.getLocalStream());
   statusCall.classList.remove("ended");
@@ -86,18 +94,16 @@ function startRecording() {
   } else {
     callerRecorder = null;
     setTimeout(() => {
-      clearInterval(t);
+      clearInterval(timmerRecording);
       startRecording();
     }, 2000);
   }
-  t = setInterval(setTime, 1000);
+  timmerRecording = setInterval(setTime, 1000);
 }
-let totalSeconds = 0;
 
 function setTime() {
-  const timer = document.getElementById("timer");
   ++totalSeconds;
-  timer.innerHTML = `${pad(parseInt(totalSeconds / 60))}:${pad(
+  timerElement.innerHTML = `${pad(parseInt(totalSeconds / 60))}:${pad(
     totalSeconds % 60
   )}`;
 }
@@ -143,13 +149,7 @@ async function sendAudioFile(blob) {
 function saveAudios(base64AudioMessage) {
   baseAudiosArr.push(base64AudioMessage);
   if (baseAudiosArr.length === 2) {
-    let params;
-    if (transaction_id) {
-      params = `?officeId=${office_id}&transaction_id=${transaction_id}`;
-    } else {
-      params = `?officeId=${office_id}`;
-    }
-    fetch(`http://localhost:3333/api/office/post-office-recordings/${params}`, {
+    fetch(`/recordings`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -158,11 +158,14 @@ function saveAudios(base64AudioMessage) {
       body: JSON.stringify({
         self: baseAudiosArr[0],
         caller: baseAudiosArr[1],
+        transaction_id,
+        office_id,
       }),
     }).then((res) => {
       if (res.status === 201) {
         const snd = new Audio(base64AudioMessage);
         snd.play();
+        console.log(res);
       } else {
         console.log("Invalid status saving audio message: " + res.status);
       }
@@ -174,7 +177,8 @@ async function endRecording() {
   statusCall.innerHTML = "Chamada encerrada";
   statusCall.classList.add("ended");
   buttonStopRecording.classList.remove("show");
-  clearInterval(t);
+  clearInterval(timmerRecording);
+  totalSeconds = 0;
   if (selfRecorder) {
     selfRecorder.stop();
   }

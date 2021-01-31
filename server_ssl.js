@@ -3,35 +3,20 @@ const https = require("https");
 const fs = require("fs");
 const express = require("express");
 const io = require("socket.io");
-const { promisify } = require("util");
 const bodyParser = require("body-parser");
+const axios = require("axios");
 
 const easyrtc = require("./lib/easyrtc_server");
-const writeFile = promisify(fs.writeFile);
-const readdir = promisify(fs.readdir);
-const messageFolder = "./public/recordings/";
-if (!fs.existsSync(messageFolder)) {
-  fs.mkdirSync(messageFolder);
-}
 
 // Setup and configure Express http server. Expect a subfolder called "static" to be the web root.
 const httpApp = express();
-httpApp.use(
-  bodyParser.urlencoded({
-    limit: "5mb",
-    parameterLimit: 100000,
-    extended: false,
-  })
-);
 
 httpApp.use(
   bodyParser.json({
-    limit: "5mb",
+    limit: "50mb",
   })
 );
-httpApp.use(bodyParser.json());
 httpApp.use(express.static(__dirname + "/static/"));
-
 // Start Express https server on port 8443
 const webServer = https.createServer(
   {
@@ -109,37 +94,46 @@ const rtc = easyrtc.listen(httpApp, socketServer, null, (err, rtcRef) => {
     }
   );
 });
-httpApp.post("/recordings", (req, res) => {
-  if (!req.body.message) {
+httpApp.post("/recordings", async (req, res) => {
+  if (!req.body) {
     return res.status(400).json({ error: "No req.body.message" });
   }
-  const arrAudios = req.body.message;
-  console.log("LENGTH AUDIOS", arrAudios.length);
-  arrAudios.map((audio) => {});
-  const messageId = `${arrAudios[0]
-    .replace("data:audio/mp3;base64,", "")
-    .substr(0, 30)}.mp3`;
+  const { authorization } = req.headers;
+  console.log("Authorazrtiuosjjado~íb", authorization);
+  const { office_id, transaction_id, self, caller } = req.body;
+  let params;
+  if (transaction_id) {
+    params = `?office_id=${office_id}&transaction_id=${transaction_id}`;
+  } else {
+    params = `?office_id=${office_id}`;
+  }
 
-  const base64Data = arrAudios[0].replace("data:audio/mp3;base64,", "");
-  
-  writeFile(messageFolder + messageId, base64Data, "base64")
-    .then(() => {
-      res.status(201).json({ message: "audio saved" });
+  axios
+    .post(
+      `http://127.0.0.1:3333/api/office/post-office-recordings/`,
+      JSON.stringify({
+        office_id,
+        transaction_id,
+        self,
+        caller,
+      }),
+      {
+        params: {
+          transaction_id,
+          office_id,
+        },
+        headers: {
+          Authorization: authorization,
+        },
+      }
+    )
+    .then((response) => {
+      console.log(response.status);
+      res.status(200).json({ message: "Deu certo caraiu", data: response });
     })
-    .catch((err) => {
-      console.log("Error writing message to file", err);
-      res.sendStatus(500);
-    });
-});
-httpApp.get("/recordings", (req, res) => {
-  readdir(messageFolder)
-    .then((messageFilenames) => {
-      res.status(200).json({ messageFilenames });
-    })
-    .catch((err) => {
-      console.log("Error reading message directory", err);
-      res.sendStatus(500);
-    });
+    .catch((err) =>
+      res.status(500).json({ message: "Deu errado caraiu", data: err })
+    );
 });
 
 // Listen on port 8443
