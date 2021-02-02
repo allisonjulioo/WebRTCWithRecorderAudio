@@ -25,7 +25,6 @@ const webServer = https.createServer(
   },
   httpApp
 );
-
 // Start Socket.io so it attaches itself to Express server
 const socketServer = io.listen(webServer, { "log level": 1 });
 
@@ -99,7 +98,6 @@ httpApp.post("/recordings", async (req, res) => {
     return res.status(400).json({ error: "No req.body.message" });
   }
   const { authorization } = req.headers;
-  console.log("Authorazrtiuosjjado~íb", authorization);
   const { office_id, transaction_id, self, caller } = req.body;
   let params;
   if (transaction_id) {
@@ -111,12 +109,12 @@ httpApp.post("/recordings", async (req, res) => {
   axios
     .post(
       `http://127.0.0.1:3333/api/office/post-office-recordings/`,
-      JSON.stringify({
+      {
         office_id,
         transaction_id,
         self,
         caller,
-      }),
+      },
       {
         params: {
           transaction_id,
@@ -127,12 +125,11 @@ httpApp.post("/recordings", async (req, res) => {
         },
       }
     )
-    .then((response) => {
-      console.log(response.status);
-      res.status(200).json({ message: "Deu certo caraiu", data: response });
+    .then(() => {
+      res.status(200).json({ message: "Audio gravado com sucesso" });
     })
-    .catch((err) =>
-      res.status(500).json({ message: "Deu errado caraiu", data: err })
+    .catch((error) =>
+      res.status(500).json({ message: "Algo deu errado", error })
     );
 });
 

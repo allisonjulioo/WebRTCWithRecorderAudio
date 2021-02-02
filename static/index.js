@@ -1,20 +1,20 @@
-let selfEasyrtcid = "";
 const supportsRecording = easyrtc.supportsRecording();
 const url = new URL(window.location);
 const transaction_id = url.searchParams.get("transaction_id");
 const office_id = url.searchParams.get("office_id");
 const token = url.searchParams.get("token");
 let audiosArr = [];
+const baseAudiosArr = [];
 let buttonStopRecording;
 let statusCall;
-let list = [];
-const baseAudiosArr = [];
-
 let timerElement;
+
 let selfRecorder = null;
 let callerRecorder = null;
 let timmerRecording;
 let totalSeconds = 0;
+const socket = io.connect("https://localhost:8443/");
+easyrtc.useThisSocketConnection(socket);
 
 function connect() {
   buttonStopRecording = document.getElementById("stopRecording");
@@ -27,7 +27,6 @@ function connect() {
   } else {
     easyrtc.setRecordingVideoCodec("vp8");
   }
-
   easyrtc.setVideoDims(640, 480);
   easyrtc.setRoomOccupantListener(getListUsersRoom);
   easyrtc.easyApp(
@@ -38,20 +37,42 @@ function connect() {
     loginFailure
   );
   conenecteds();
+  easyrtc.setRoomOccupantListener(loggedInListener);
 }
+function loggedInListener(type, connections, conn) {
+  if (!!Object.keys(connections).length) {
+    startRecording();
+  } else {
+    endRecording();
+  }
+  checkPermissionMicrophone();
+}
+function checkPermissionMicrophone() {
+  navigator.getUserMedia =
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia;
+
+  if (navigator.getUserMedia) {
+    navigator.getUserMedia(
+      { audio: true, video: { width: 1280, height: 720 } },
+      function (stream) {
+        console.log("Accessed the Microphone");
+      },
+      function (err) {
+        console.log("The following error occured: " + err.name);
+      }
+    );
+  } else {
+    console.log("getUserMedia not supported");
+  }
+}
+
 function performCall(otherEasyrtcid) {
   easyrtc.hangupAll();
   var successCB = function () {};
   var failureCB = function () {};
   easyrtc.call(otherEasyrtcid, successCB, failureCB);
-  list.push(otherEasyrtcid);
-  if (list.length >= 2) {
-    startRecording();
-  } else {
-    clearInterval(timmerRecording);
-    timerElement.innerHTML = "";
-    totalSeconds = 0;
-  }
 }
 function getListUsersRoom(roomName, data, isPrimary) {
   for (var easyrtcid in data) {
@@ -59,18 +80,16 @@ function getListUsersRoom(roomName, data, isPrimary) {
   }
 }
 function conenecteds() {
-  if (!transaction_id) {
+  if (!office_id) {
     document.getElementById("action-buttons").remove();
   }
 }
 
 function loginSuccess(easyrtcid) {
-  selfEasyrtcid = easyrtcid;
-  if (transaction_id) {
-    document.getElementById("iam1").innerHTML = transaction_id;
+  if (office_id) {
+    document.getElementById("iam1").innerHTML = "Você";
   } else {
-    document.getElementById("iam2").innerHTML =
-      "server-" + easyrtc.cleanId(easyrtcid);
+    document.getElementById("iam2").innerHTML = "Operador";
   }
 
   performCall(easyrtcid);
@@ -83,6 +102,9 @@ function loginFailure(errorCode, message) {
 function startRecording() {
   selfRecorder = recordToFile(easyrtc.getLocalStream());
   statusCall.classList.remove("ended");
+  document
+    .querySelectorAll(".avatar")
+    .forEach((avatar) => (avatar.style.backgroundColor = "#1e7e34"));
   statusCall.innerHTML = "Em chamada";
   statusCall.classList.add("active");
   buttonStopRecording.classList.add("show");
@@ -141,6 +163,7 @@ function getAudiosByBlobUrl(videoURL) {
     });
   }
 }
+
 async function sendAudioFile(blob) {
   const reader = new window.FileReader();
   reader.readAsDataURL(blob);
@@ -161,21 +184,21 @@ function saveAudios(base64AudioMessage) {
         transaction_id,
         office_id,
       }),
-    }).then((res) => {
-      if (res.status === 201) {
-        const snd = new Audio(base64AudioMessage);
-        snd.play();
-        console.log(res);
-      } else {
-        console.log("Invalid status saving audio message: " + res.status);
-      }
-    });
+    })
+      .then((res) => {
+        console.log("Validate status saving audio message: " + res.status);
+        window.close();
+      })
+      .catch((error) => {
+        console.log("Invalid status saving audio message: " + error);
+        window.close();
+      });
   }
 }
 async function endRecording() {
   statusCall.classList.remove("active");
-  statusCall.innerHTML = "Chamada encerrada";
-  statusCall.classList.add("ended");
+  statusCall.innerHTML = "Aguardando...";
+  timer.innerHTML = "00:00";
   buttonStopRecording.classList.remove("show");
   clearInterval(timmerRecording);
   totalSeconds = 0;

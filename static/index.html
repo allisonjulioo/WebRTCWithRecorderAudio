@@ -13,6 +13,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="./easyrtc.js"></script>
     <script type="text/javascript" src="./easyrtc_recorder.js"></script>
+    <script src="https://unpkg.com/web-audio-daw"></script>
     <script type="text/javascript" src="./index.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   </head>
@@ -23,14 +24,14 @@
         <small class="in-call" id="inCall">Aguardando...</small>
         <div id="videos">
           <div class="videos">
-            <section>
+            <section class="avatar">
               <i class="fas fa-user icon-call"></i>
               <video autoplay="autoplay" id="selfVideo"></video>
             </section>
             <strong id="iam1">Você</strong>
           </div>
           <div class="videos">
-            <section>
+            <section class="avatar">
               <i class="fas fa-user icon-call"></i>
               <video autoplay="autoplay" id="callerVideo"></video>
             </section>
@@ -38,13 +39,6 @@
           </div>
         </div>
         <div id="action-buttons">
-          <!-- <button
-            id="startRecording"
-            class="btn btn-info btn-pill btn-sm"
-            onclick="startRecording();"
-          >
-            <i class="fas fa-microphone"></i>
-          </button> -->
           <button
             id="stopRecording"
             class="btn btn-danger btn-pill btn-sm btn-end-call"

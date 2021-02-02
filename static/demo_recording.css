@@ -94,3 +94,31 @@ body {
 .in-call.ended {
   color: #df4430 !important;
 }
+#easyrtcErrorDialog {
+  position: fixed;
+  z-index: +10;
+  background: white;
+  top: 0;
+  left: 0;
+  padding: 10px;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  padding: 10px 2em;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+}
+.easyrtcErrorDialog_title {
+  font-size: 3em;
+  color: #1d2124;
+  font-weight: bold;
+}
+#easyrtcErrorDialog_body {
+  margin: 2em 0;
+}
+.btn {
+  height: 50px;
+  border-radius: 0px;
+}
