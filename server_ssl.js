@@ -99,13 +99,6 @@ httpApp.post("/recordings", async (req, res) => {
   }
   const { authorization } = req.headers;
   const { office_id, transaction_id, self, caller } = req.body;
-  let params;
-  if (transaction_id) {
-    params = `?office_id=${office_id}&transaction_id=${transaction_id}`;
-  } else {
-    params = `?office_id=${office_id}`;
-  }
-
   axios
     .post(
       `http://127.0.0.1:3333/api/office/post-office-recordings/`,
