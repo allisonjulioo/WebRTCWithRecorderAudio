@@ -171,7 +171,8 @@ async function sendAudioFile(blob) {
 }
 function saveAudios(base64AudioMessage) {
   baseAudiosArr.push(base64AudioMessage);
-  if (baseAudiosArr.length === 2) {
+  if (baseAudiosArr.length === 2 && office_id) {
+    statusCall.innerHTML = "Salvando gravação, não feche essa aba!";
     fetch(`/recordings`, {
       method: "POST",
       headers: {
@@ -200,6 +201,9 @@ async function endRecording() {
   statusCall.innerHTML = "Aguardando...";
   timer.innerHTML = "00:00";
   buttonStopRecording.classList.remove("show");
+  document
+    .querySelectorAll(".avatar")
+    .forEach((avatar) => (avatar.style = ""));
   clearInterval(timmerRecording);
   totalSeconds = 0;
   if (selfRecorder) {
