@@ -20,8 +20,8 @@
   <body onload="connect();">
     <div id="container" class="container">
       <div id="main">
-        <h4 class="timer-lapse" id="timer">00:00</h4>
-        <small class="in-call" id="inCall">Aguardando...</small>
+        <h4 class="timer-lapse" id="timer">Estabelecendo conexão</h4>
+        <small class="in-call" id="inCall"></small>
         <div id="videos">
           <div class="videos">
             <section class="avatar">
@@ -45,6 +45,17 @@
             onclick="endRecording();"
           >
             <i class="fas fa-phone"></i>
+          </button>
+        </div>
+
+        <div class="text-center mx-auto mt-4">
+          <small class="text-white d-block">Não consegue escutar?</small>
+          <button
+            style="height: auto"
+            class="btn btn-link btn-sm mx-0 py-0"
+            onclick="location.reload()"
+          >
+            Reestabeleça a conexão
           </button>
         </div>
       </div>

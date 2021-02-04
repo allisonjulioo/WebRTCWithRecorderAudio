@@ -8904,7 +8904,6 @@ About: License
       var errorDiv = document.getElementById("easyrtcErrorDialog");
       var errorBody;
       if (!errorDiv) {
-        document.getElementById("container").remove();
         errorDiv = document.createElement("div");
         errorDiv.id = "easyrtcErrorDialog";
         var title = document.createElement("div");

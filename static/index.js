@@ -1,3 +1,4 @@
+let selfEasyrtcid = "";
 const supportsRecording = easyrtc.supportsRecording();
 const url = new URL(window.location);
 const transaction_id = url.searchParams.get("transaction_id");
@@ -13,21 +14,14 @@ let selfRecorder = null;
 let callerRecorder = null;
 let timmerRecording;
 let totalSeconds = 0;
-const socket = io.connect("https://localhost:8443/");
-easyrtc.useThisSocketConnection(socket);
 
 function connect() {
+  easyrtc.enableVideo(false);
+  easyrtc.enableVideoReceive(false);
   buttonStopRecording = document.getElementById("stopRecording");
   timerElement = document.getElementById("timer");
   statusCall = document.getElementById("inCall");
-  if (!supportsRecording) {
-    window.alert(
-      "This browser does not support recording. Try chrome or firefox."
-    );
-  } else {
-    easyrtc.setRecordingVideoCodec("vp8");
-  }
-  easyrtc.setVideoDims(640, 480);
+
   easyrtc.setRoomOccupantListener(getListUsersRoom);
   easyrtc.easyApp(
     "easyrtc.audioSimple",
@@ -37,7 +31,6 @@ function connect() {
     loginFailure
   );
   conenecteds();
-  easyrtc.setRoomOccupantListener(loggedInListener);
 }
 function loggedInListener(type, connections, conn) {
   if (!!Object.keys(connections).length) {
@@ -78,6 +71,7 @@ function getListUsersRoom(roomName, data, isPrimary) {
   for (var easyrtcid in data) {
     performCall(easyrtcid);
   }
+  loggedInListener(roomName, data, isPrimary);
 }
 function conenecteds() {
   if (!office_id) {
@@ -86,6 +80,7 @@ function conenecteds() {
 }
 
 function loginSuccess(easyrtcid) {
+  selfEasyrtcid = easyrtcid;
   if (office_id) {
     document.getElementById("iam1").innerHTML = "Você";
   } else {
@@ -105,7 +100,7 @@ function startRecording() {
   document
     .querySelectorAll(".avatar")
     .forEach((avatar) => (avatar.style.backgroundColor = "#1e7e34"));
-  statusCall.innerHTML = "Em chamada";
+  statusCall.innerHTML = "Gravando";
   statusCall.classList.add("active");
   buttonStopRecording.classList.add("show");
 
@@ -120,22 +115,7 @@ function startRecording() {
       startRecording();
     }, 2000);
   }
-  timmerRecording = setInterval(setTime, 1000);
-}
-
-function setTime() {
-  ++totalSeconds;
-  timerElement.innerHTML = `${pad(parseInt(totalSeconds / 60))}:${pad(
-    totalSeconds % 60
-  )}`;
-}
-
-function pad(val) {
-  const valString = val + "";
-  if (valString.length < 2) {
-    return "0" + valString;
-  }
-  return valString;
+  timerElement.innerHTML = "Em chamada";
 }
 
 function recordToFile(mediaStream) {
@@ -172,6 +152,7 @@ async function sendAudioFile(blob) {
 function saveAudios(base64AudioMessage) {
   baseAudiosArr.push(base64AudioMessage);
   if (baseAudiosArr.length === 2 && office_id) {
+    timer.innerHTML = "Salvando...";
     statusCall.innerHTML = "Salvando gravação, não feche essa aba!";
     fetch(`/recordings`, {
       method: "POST",
@@ -198,14 +179,17 @@ function saveAudios(base64AudioMessage) {
 }
 async function endRecording() {
   statusCall.classList.remove("active");
-  statusCall.innerHTML = "Aguardando...";
-  timer.innerHTML = "00:00";
+  statusCall.innerHTML = " ";
+  timer.innerHTML = "Estabelecendo conexão";
   buttonStopRecording.classList.remove("show");
-  document
-    .querySelectorAll(".avatar")
-    .forEach((avatar) => (avatar.style = ""));
+  document.querySelectorAll(".avatar").forEach((avatar) => (avatar.style = ""));
   clearInterval(timmerRecording);
   totalSeconds = 0;
+  const buttonError = document.querySelector(".easyrtcErrorDialog_okayButton");
+  if (buttonError) {
+    setTimeout(() => buttonError.click(), 2000);
+    console.log(buttonError);
+  }
   if (selfRecorder) {
     selfRecorder.stop();
   }
