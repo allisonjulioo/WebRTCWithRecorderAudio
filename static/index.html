@@ -1,60 +1,54 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#232223" />
-    <title>Áudio Bi-direcional</title>
-    <link rel="stylesheet" href="./bootstrap.min.css" />
-    <link rel="stylesheet" type="text/css" href="./demo_recording.css" />
-    <script src="/socket.io/socket.io.js"></script>
-    <script type="text/javascript" src="./easyrtc.js"></script>
-    <script type="text/javascript" src="./easyrtc_recorder.js"></script>
-    <script type="text/javascript" src="./index.js"></script>
-    <script src="./fontawesome.js"></script>
-  </head>
-  <body onload="connect();">
-    <div id="container" class="container">
-      <div id="main">
-        <h4 class="timer-lapse" id="timer">Estabelecendo conexão</h4>
-        <small class="in-call" id="inCall"></small>
-        <div id="videos">
-          <div class="videos">
-            <section class="avatar">
-              <i class="fas fa-user icon-call"></i>
-              <video autoplay="autoplay" id="selfVideo"></video>
-            </section>
-            <strong id="iam1">Você</strong>
-          </div>
-          <div class="videos">
-            <section class="avatar">
-              <i class="fas fa-user icon-call"></i>
-              <video autoplay="autoplay" id="callerVideo"></video>
-            </section>
-            <strong id="iam2">Servidor</strong>
-          </div>
-        </div>
-        <div id="action-buttons">
-          <button
-            id="stopRecording"
-            class="btn btn-danger btn-pill btn-sm btn-end-call"
-            onclick="endRecording();"
-          >
-            <i class="fas fa-phone"></i>
-          </button>
-        </div>
 
-        <div class="text-center mx-auto mt-4">
-          <small class="text-white d-block">Não consegue escutar?</small>
-          <button
-            style="height: auto"
-            class="btn btn-link btn-sm mx-0 py-0"
-            onclick="location.reload()"
-          >
-            Reestabeleça a conexão
-          </button>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#232223" />
+  <title>Áudio Bi-direcional</title>
+  <link rel="stylesheet" href="./bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="./demo_recording.css" />
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="./easyrtc.js"></script>
+  <script type="text/javascript" src="./easyrtc_recorder.js"></script>
+  <script type="text/javascript" src="./index.js"></script>
+  <script src="./fontawesome.js"></script>
+</head>
+
+<body onload="connect();">
+  <div id="container" class="container">
+    <div id="main">
+      <h4 class="timer-lapse" id="timer">Estabelecendo conexão</h4>
+      <small class="in-call" id="inCall"></small>
+      <div id="videos">
+        <div class="videos">
+          <section class="avatar">
+            <i class="fas fa-user icon-call"></i>
+            <video autoplay="autoplay" id="selfVideo"></video>
+          </section>
+          <strong id="iam1">Você</strong>
+        </div>
+        <div class="videos">
+          <section class="avatar">
+            <i class="fas fa-user icon-call"></i>
+            <video autoplay="autoplay" id="callerVideo"></video>
+          </section>
+          <strong id="iam2">Servidor</strong>
         </div>
       </div>
+      <div id="action-buttons">
+        <button id="stopRecording" class="btn btn-danger btn-pill btn-sm btn-end-call" onclick="endRecording();">
+          <i class="fas fa-phone"></i>
+        </button>
+      </div>
+
+      <div class="text-center mx-auto mt-4">
+        <button style="height: auto; border-radius: 50rem;" class="btn btn-outline-primary" onclick="location.reload()">
+          Não consigo ouvir
+        </button>
+      </div>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
